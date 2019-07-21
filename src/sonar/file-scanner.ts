@@ -4,13 +4,17 @@ import { extname } from 'path';
 import { readFileSync, readFile } from 'fs';
 import { print } from 'graphql';
 import { IResolvers } from '@kamilkisiela/graphql-tools';
-import * as isGlob from 'is-glob';
 
 const DEFAULT_SCHEMA_EXTENSIONS = ['gql', 'graphql', 'graphqls', 'ts', 'js'];
 const DEFAULT_IGNORED_RESOLVERS_EXTENSIONS = ['spec', 'test', 'd'];
 const DEFAULT_RESOLVERS_EXTENSIONS = ['ts', 'js'];
 const DEFAULT_SCHEMA_EXPORT_NAMES = ['typeDefs', 'schema'];
 const DEFAULT_RESOLVERS_EXPORT_NAMES = ['resolvers', 'resolver'];
+
+function isDirectory(path: string) {
+  const fs = eval(`require('fs')`);
+  return fs.existsSync(path) && fs.statSync(path).isDirectory();
+}
 
 function scanForFiles(globStr: string, globOptions: IOptions = {}): string[] {
   return sync(globStr, { absolute: true, ...globOptions });
@@ -46,6 +50,7 @@ function extractExports(fileExport: any, exportNames: string[]): any | null {
 }
 
 export interface LoadSchemaFilesOptions {
+  ignoredExtensions?: string[];
   extensions?: string[];
   useRequire?: boolean;
   requireMethod?: any;
@@ -55,6 +60,7 @@ export interface LoadSchemaFilesOptions {
 }
 
 const LoadSchemaFilesDefaultOptions: LoadSchemaFilesOptions = {
+  ignoredExtensions: DEFAULT_IGNORED_RESOLVERS_EXTENSIONS,
   extensions: DEFAULT_SCHEMA_EXTENSIONS,
   useRequire: false,
   requireMethod: null,
@@ -65,7 +71,7 @@ const LoadSchemaFilesDefaultOptions: LoadSchemaFilesOptions = {
 
 export function loadSchemaFiles(path: string, options: LoadSchemaFilesOptions = LoadSchemaFilesDefaultOptions): string[] {
   const execOptions = { ...LoadSchemaFilesDefaultOptions, ...options };
-  const relevantPaths = scanForFiles(isGlob(path) ? path : buildGlob(path, execOptions.extensions, [], execOptions.recursive), options.globOptions);
+  const relevantPaths = scanForFiles(isDirectory(path) ? buildGlob(path, execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive) : path, options.globOptions);
 
   return relevantPaths.map(path => {
     const extension = extname(path);
@@ -105,7 +111,7 @@ const LoadResolversFilesDefaultOptions: LoadResolversFilesOptions = {
 
 export function loadResolversFiles<Resolvers extends IResolvers = IResolvers>(path: string, options: LoadResolversFilesOptions = LoadResolversFilesDefaultOptions): Resolvers[] {
   const execOptions = { ...LoadResolversFilesDefaultOptions, ...options };
-  const relevantPaths = scanForFiles(isGlob(path) ? path : buildGlob(path, execOptions.extensions, [], execOptions.recursive), options.globOptions);
+  const relevantPaths = scanForFiles(isDirectory(path) ? buildGlob(path, execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive) : path, options.globOptions);
 
   return relevantPaths.map(path => {
     try {
@@ -129,7 +135,7 @@ function scanForFilesAsync(globStr: string, globOptions: IOptions = {}): Promise
 
 export async function loadSchemaFilesAsync(path: string, options: LoadSchemaFilesOptions = LoadSchemaFilesDefaultOptions): Promise<string[]> {
   const execOptions = { ...LoadSchemaFilesDefaultOptions, ...options };
-  const relevantPaths = await scanForFilesAsync(isGlob(path) ? path : buildGlob(path, execOptions.extensions, [], execOptions.recursive), options.globOptions);
+  const relevantPaths = await scanForFilesAsync(isDirectory(path) ? buildGlob(path, execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive) : path, options.globOptions);
 
   const require$ = (path: string) => eval(`import('${path}')`);
 
@@ -160,7 +166,7 @@ export async function loadSchemaFilesAsync(path: string, options: LoadSchemaFile
 
 export async function loadResolversFilesAsync<Resolvers extends IResolvers = IResolvers>(path: string, options: LoadResolversFilesOptions = LoadResolversFilesDefaultOptions): Promise<Resolvers[]> {
   const execOptions = { ...LoadResolversFilesDefaultOptions, ...options };
-  const relevantPaths = await scanForFilesAsync(isGlob(path) ? path : buildGlob(path, execOptions.extensions, [], execOptions.recursive), options.globOptions);
+  const relevantPaths = await scanForFilesAsync(isDirectory(path) ? buildGlob(path, execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive) : path, options.globOptions);
 
   const require$ = (path: string) => eval(`import('${path}')`);
 
