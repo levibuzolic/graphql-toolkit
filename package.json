@@ -12,7 +12,7 @@
     "test": "jest --forceExit && yarn bundlesize",
     "prepare-release": "yarn build && yarn test",
     "release": "yarn prepare-release && npm publish",
-    "ci:release:canary": "yarn prepare-release && node bump.js && npm publish --tag alpha",
+    "ci:release:canary": "node bump.js && npm publish --tag alpha",
     "bundlesize": "yarn build && cd bundle-test/ && yarn && yarn test"
   },
   "sideEffects": false,

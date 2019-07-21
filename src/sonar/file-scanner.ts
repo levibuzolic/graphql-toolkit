@@ -6,7 +6,7 @@ import { print } from 'graphql';
 import { IResolvers } from '@kamilkisiela/graphql-tools';
 
 const DEFAULT_SCHEMA_EXTENSIONS = ['gql', 'graphql', 'graphqls', 'ts', 'js'];
-const DEFAULT_IGNORED_RESOLVERS_EXTENSIONS = ['spec', 'test', 'd'];
+const DEFAULT_IGNORED_RESOLVERS_EXTENSIONS = ['spec', 'test', 'd', 'gql', 'graphql', 'graphqls'];
 const DEFAULT_RESOLVERS_EXTENSIONS = ['ts', 'js'];
 const DEFAULT_SCHEMA_EXPORT_NAMES = ['typeDefs', 'schema'];
 const DEFAULT_RESOLVERS_EXPORT_NAMES = ['resolvers', 'resolver'];
@@ -61,7 +61,7 @@ export interface LoadSchemaFilesOptions {
 }
 
 const LoadSchemaFilesDefaultOptions: LoadSchemaFilesOptions = {
-  ignoredExtensions: DEFAULT_IGNORED_RESOLVERS_EXTENSIONS,
+  ignoredExtensions: [],
   extensions: DEFAULT_SCHEMA_EXTENSIONS,
   useRequire: false,
   requireMethod: null,
@@ -79,6 +79,15 @@ export function loadSchemaFiles(path: string, options: LoadSchemaFilesOptions = 
     if (path.startsWith('index.') && options.ignoreIndex) {
       return false;
     }
+
+    if (options.ignoredExtensions) {
+      for (const ignoredExt of options.ignoredExtensions) {
+       if (path.endsWith(ignoredExt)) {
+         return false;
+       } 
+      }
+    }
+
     const extension = extname(path);
 
     if (extension.endsWith('.js') || extension.endsWith('.ts') || execOptions.useRequire) {
@@ -124,6 +133,15 @@ export function loadResolversFiles<Resolvers extends IResolvers = IResolvers>(pa
     if (path.startsWith('index.') && options.ignoreIndex) {
       return false;
     }
+
+    if (options.ignoredExtensions) {
+      for (const ignoredExt of options.ignoredExtensions) {
+       if (path.endsWith(ignoredExt)) {
+         return false;
+       } 
+      }
+    }
+
     try {
       const fileExports = (execOptions.requireMethod ? execOptions.requireMethod : eval('require'))(path);
 
@@ -153,6 +171,15 @@ export async function loadSchemaFilesAsync(path: string, options: LoadSchemaFile
     if (path.startsWith('index.') && options.ignoreIndex) {
       return false;
     }
+
+    if (options.ignoredExtensions) {
+      for (const ignoredExt of options.ignoredExtensions) {
+       if (path.endsWith(ignoredExt)) {
+         return false;
+       } 
+      }
+    }
+
     const extension = extname(path);
 
     if (extension.endsWith('.js') || extension.endsWith('.ts') || execOptions.useRequire) {
@@ -184,6 +211,18 @@ export async function loadResolversFilesAsync<Resolvers extends IResolvers = IRe
   const require$ = (path: string) => eval(`import('${path}')`);
 
   return Promise.all(relevantPaths.map(async path => {
+    if (path.startsWith('index.') && options.ignoreIndex) {
+      return false;
+    }
+
+    if (options.ignoredExtensions) {
+      for (const ignoredExt of options.ignoredExtensions) {
+       if (path.endsWith(ignoredExt)) {
+         return false;
+       } 
+      }
+    }
+
     try {
       const fileExports = await (execOptions.requireMethod ? execOptions.requireMethod : require$)(path);
 
