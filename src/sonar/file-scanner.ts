@@ -76,16 +76,9 @@ export function loadSchemaFiles(path: string, options: LoadSchemaFilesOptions = 
   const relevantPaths = scanForFiles(isDirectory(path) ? buildGlob(path, execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive) : path, options.globOptions);
 
   return relevantPaths.map(path => {
-    if (path.startsWith('index.') && options.ignoreIndex) {
-      return false;
-    }
 
-    if (options.ignoredExtensions) {
-      for (const ignoredExt of options.ignoredExtensions) {
-       if (path.endsWith(ignoredExt)) {
-         return false;
-       } 
-      }
+    if (path.startsWith('index.') && execOptions.ignoreIndex) {
+      return false;
     }
 
     const extension = extname(path);
@@ -130,16 +123,9 @@ export function loadResolversFiles<Resolvers extends IResolvers = IResolvers>(pa
   const relevantPaths = scanForFiles(isDirectory(path) ? buildGlob(path, execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive) : path, options.globOptions);
 
   return relevantPaths.map(path => {
-    if (path.startsWith('index.') && options.ignoreIndex) {
+    
+    if (path.includes('/index.') && options.ignoreIndex) {
       return false;
-    }
-
-    if (options.ignoredExtensions) {
-      for (const ignoredExt of options.ignoredExtensions) {
-       if (path.endsWith(ignoredExt)) {
-         return false;
-       } 
-      }
     }
 
     try {
@@ -168,16 +154,8 @@ export async function loadSchemaFilesAsync(path: string, options: LoadSchemaFile
   const require$ = (path: string) => eval(`import('${path}')`);
 
   return Promise.all(relevantPaths.map(async path => {
-    if (path.startsWith('index.') && options.ignoreIndex) {
+    if (path.startsWith('index.') && execOptions.ignoreIndex) {
       return false;
-    }
-
-    if (options.ignoredExtensions) {
-      for (const ignoredExt of options.ignoredExtensions) {
-       if (path.endsWith(ignoredExt)) {
-         return false;
-       } 
-      }
     }
 
     const extension = extname(path);
@@ -211,16 +189,8 @@ export async function loadResolversFilesAsync<Resolvers extends IResolvers = IRe
   const require$ = (path: string) => eval(`import('${path}')`);
 
   return Promise.all(relevantPaths.map(async path => {
-    if (path.startsWith('index.') && options.ignoreIndex) {
+    if (path.startsWith('index.') && execOptions.ignoreIndex) {
       return false;
-    }
-
-    if (options.ignoredExtensions) {
-      for (const ignoredExt of options.ignoredExtensions) {
-       if (path.endsWith(ignoredExt)) {
-         return false;
-       } 
-      }
     }
 
     try {

@@ -13,7 +13,7 @@
     "prepare-release": "yarn build && yarn test",
     "release": "yarn prepare-release && npm publish",
     "ci:release:canary": "node bump.js && npm publish --tag alpha",
-    "bundlesize": "yarn build && cd bundle-test/ && yarn && yarn test"
+    "bundlesize": "cd bundle-test/ && yarn && yarn test"
   },
   "sideEffects": false,
   "main": "dist/commonjs/index.js",
