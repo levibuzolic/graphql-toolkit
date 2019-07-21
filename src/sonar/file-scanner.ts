@@ -57,6 +57,7 @@ export interface LoadSchemaFilesOptions {
   globOptions?: IOptions;
   exportNames?: string[];
   recursive?: boolean;
+  ignoreIndex?: boolean;
 }
 
 const LoadSchemaFilesDefaultOptions: LoadSchemaFilesOptions = {
@@ -67,6 +68,7 @@ const LoadSchemaFilesDefaultOptions: LoadSchemaFilesOptions = {
   globOptions: {},
   exportNames: DEFAULT_SCHEMA_EXPORT_NAMES,
   recursive: true,
+  ignoreIndex: false,
 };
 
 export function loadSchemaFiles(path: string, options: LoadSchemaFilesOptions = LoadSchemaFilesDefaultOptions): string[] {
@@ -74,6 +76,9 @@ export function loadSchemaFiles(path: string, options: LoadSchemaFilesOptions = 
   const relevantPaths = scanForFiles(isDirectory(path) ? buildGlob(path, execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive) : path, options.globOptions);
 
   return relevantPaths.map(path => {
+    if (path.startsWith('index.') && options.ignoreIndex) {
+      return false;
+    }
     const extension = extname(path);
 
     if (extension.endsWith('.js') || extension.endsWith('.ts') || execOptions.useRequire) {
@@ -98,6 +103,7 @@ export interface LoadResolversFilesOptions {
   globOptions?: IOptions;
   exportNames?: string[];
   recursive?: boolean;
+  ignoreIndex?: boolean;
 }
 
 const LoadResolversFilesDefaultOptions: LoadResolversFilesOptions = {
@@ -107,6 +113,7 @@ const LoadResolversFilesDefaultOptions: LoadResolversFilesOptions = {
   globOptions: {},
   exportNames: DEFAULT_RESOLVERS_EXPORT_NAMES,
   recursive: true,
+  ignoreIndex: false,
 };
 
 export function loadResolversFiles<Resolvers extends IResolvers = IResolvers>(path: string, options: LoadResolversFilesOptions = LoadResolversFilesDefaultOptions): Resolvers[] {
@@ -114,6 +121,9 @@ export function loadResolversFiles<Resolvers extends IResolvers = IResolvers>(pa
   const relevantPaths = scanForFiles(isDirectory(path) ? buildGlob(path, execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive) : path, options.globOptions);
 
   return relevantPaths.map(path => {
+    if (path.startsWith('index.') && options.ignoreIndex) {
+      return false;
+    }
     try {
       const fileExports = (execOptions.requireMethod ? execOptions.requireMethod : eval('require'))(path);
 
@@ -140,6 +150,9 @@ export async function loadSchemaFilesAsync(path: string, options: LoadSchemaFile
   const require$ = (path: string) => eval(`import('${path}')`);
 
   return Promise.all(relevantPaths.map(async path => {
+    if (path.startsWith('index.') && options.ignoreIndex) {
+      return false;
+    }
     const extension = extname(path);
 
     if (extension.endsWith('.js') || extension.endsWith('.ts') || execOptions.useRequire) {
@@ -161,7 +174,7 @@ export async function loadSchemaFilesAsync(path: string, options: LoadSchemaFile
         })
       });
     }
-  }));
+  }).filter(p => p));
 }
 
 export async function loadResolversFilesAsync<Resolvers extends IResolvers = IResolvers>(path: string, options: LoadResolversFilesOptions = LoadResolversFilesDefaultOptions): Promise<Resolvers[]> {
