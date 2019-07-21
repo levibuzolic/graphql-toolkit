@@ -151,7 +151,7 @@ export async function loadSchemaFilesAsync(path: string, options: LoadSchemaFile
   const execOptions = { ...LoadSchemaFilesDefaultOptions, ...options };
   const relevantPaths = await scanForFilesAsync(isDirectory(path) ? buildGlob(path, execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive) : path, options.globOptions);
 
-  const require$ = (path: string) => eval(`import('${path}')`);
+  const require$ = (path: string) => Promise.resolve().then(() => eval(`require('${path}')`));
 
   return Promise.all(relevantPaths.map(async path => {
     if (path.startsWith('index.') && execOptions.ignoreIndex) {
@@ -186,7 +186,7 @@ export async function loadResolversFilesAsync<Resolvers extends IResolvers = IRe
   const execOptions = { ...LoadResolversFilesDefaultOptions, ...options };
   const relevantPaths = await scanForFilesAsync(isDirectory(path) ? buildGlob(path, execOptions.extensions, execOptions.ignoredExtensions, execOptions.recursive) : path, options.globOptions);
 
-  const require$ = (path: string) => eval(`import('${path}')`);
+  const require$ = (path: string) => Promise.resolve().then(() => eval(`require('${path}')`));
 
   return Promise.all(relevantPaths.map(async path => {
     if (path.startsWith('index.') && execOptions.ignoreIndex) {
